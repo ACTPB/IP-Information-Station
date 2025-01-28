@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" href="logo2.png">
     <title>主页</title>
     <style>
         body {
@@ -27,7 +28,8 @@
 
         #inputBox {
             padding: 15px 60px 15px 15px;
-            width: 400px;
+            width: calc(100% - 10px);
+            max-width: 400px;
             border: none;
             border-radius: 25px;
             background: rgba(255, 255, 255, 0.7);
@@ -44,12 +46,14 @@
         #searchButton {
             position: absolute;
             top: 50%;
-            right: 10px;
+            right: -60px;
             transform: translateY(-50%);
             background: transparent;
             border: none;
             cursor: pointer;
             outline: none;
+            min-width: 40px;
+            min-height: 40px;
         }
 
         #searchButton::before {
@@ -79,6 +83,24 @@
         #checkIPButton:hover {
             background: rgba(255, 255, 255, 0.8);
         }
+
+        @media (max-width: 768px) {
+            #container {
+                padding: 0 20px;
+            }
+            #inputBox {
+                width: calc(100% - 80px);
+                font-size: 16px;
+            }
+            #searchButton {
+                right: 5px;
+            }
+            #checkIPButton {
+                width: 100%;
+                max-width: 300px;
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -105,9 +127,13 @@
                 },
                 body: JSON.stringify({ ip: ip })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP error, status = ' + response.status);
+                }
+                return response.json();
+            })
             .then(data => {
-                // 将数据编码到URL中进行传递
                 const params = new URLSearchParams(data);
                 window.location.href = `IPLA.html?${params.toString()}`;
                 
