@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>主页</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: url('bj.png') no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        #container {
+            text-align: center;
+        }
+
+        #inputBoxGroup {
+            position: relative;
+            display: inline-block;
+        }
+
+        #inputBox {
+            padding: 15px 60px 15px 15px;
+            width: 400px;
+            border: none;
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            color: #333;
+            outline: none;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        #inputBox:focus {
+            transform: scale(1.05);
+        }
+
+        #searchButton {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            outline: none;
+        }
+
+        #searchButton::before {
+            content: "\1F50D"; 
+            font-size: 20px;
+            color: #333;
+        }
+
+        #searchButton:hover::before {
+            color: #007BFF;
+        }
+
+        #checkIPButton {
+            margin-top: 30px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            color: #333;
+            cursor: pointer;
+            outline: none;
+            display: block;
+            margin: 0 auto;
+        }
+
+        #checkIPButton:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="inputBoxGroup">
+            <input type="text" id="inputBox" placeholder="在此输入内容">
+            <button id="searchButton"></button>
+        </div>
+        <button id="checkIPButton">查询自己的IP</button>
+    </div>
+
+    <script>
+        // 假设后端的PHP处理文件
+        const backendEndpoint = 'ip_handler.php';
+        // 假设创建文件的PHP脚本
+        const createFileEndpoint = 'create_file.php';
+
+        // 发送IP到后端的函数并跳转到展示页面
+        function sendIPToBackendAndRedirect(ip) {
+            fetch(backendEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ip: ip })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 将数据编码到URL中进行传递
+                const params = new URLSearchParams(data);
+                window.location.href = `IPLA.html?${params.toString()}`;
+                
+                // 创建空白文件的请求
+                fetch(createFileEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ filename: ip })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(result => console.log('File creation result:', result))
+                .catch(error => console.error('Error creating file:', error));
+            })
+            .catch((error) => console.error('Error:', error));
+        }
+
+        // 点击查询自己的IP按钮时的逻辑
+        document.getElementById('checkIPButton').addEventListener('click', function() {
+            fetch('https://api.ipify.org?format=json')
+            .then(response => response.json())
+            .then(data => {
+                const userIP = data.ip;
+                sendIPToBackendAndRedirect(userIP);
+            })
+            .catch(error => console.error('Failed to fetch IP:', error));
+        });
+
+        // 点击输入框内的搜索按钮时的逻辑
+        document.getElementById('searchButton').addEventListener('click', function() {
+            const ipFromInput = document.getElementById('inputBox').value;
+            if(ipFromInput) {
+                sendIPToBackendAndRedirect(ipFromInput);
+            } else {
+                alert('请先输入一个IP地址。');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IP信息展示</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            background-image: url('bj.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #ipInfo {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 2em;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+            color: #87CEEB;
+        }
+    </style>
+</head>
+<body>
+    <div id="ipInfo">
+        <h1>IP信息</h1>
+        <ul id="infoList"></ul>
+    </div>
+
+    <script type="module">
+        const IPInfoModule = {
+            hostname: {
+                getValue: function(data) {
+                    return data.hostname || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>主机名: ${this.getValue(data)}</li>`;
+                }
+            },
+            ip: {
+                getValue: function(data) {
+                    return data.ip || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>IP地址: ${this.getValue(data)}</li>`;
+                }
+            },
+            city: {
+                getValue: function(data) {
+                    return data.city || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>城市: ${this.getValue(data)}</li>`;
+                }
+            },
+            MountainView: {
+                getValue: function(data) {
+                    return data.region === 'California' ? 'Mountain View' : 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>Mountain View: ${this.getValue(data)}</li>`;
+                }
+            },
+            California: {
+                getValue: function(data) {
+                    return data.region || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>州: ${this.getValue(data)}</li>`;
+                }
+            },
+            country: {
+                getValue: function(data) {
+                    if (data.country === 'TW') {
+                        return '中华民国';
+                    }
+                    return data.country || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>国家: ${this.getValue(data)}</li>`;
+                }
+            },
+            loc: {
+                getValue: function(data) {
+                    return data.loc || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>地理位置: ${this.getValue(data)}</li>`;
+                }
+            },
+            org: {
+                getValue: function(data) {
+                    return data.org || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>组织: ${this.getValue(data)}</li>`;
+                }
+            },
+            timezone: {
+                getValue: function(data) {
+                    return data.timezone || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>时区: ${this.getValue(data)}</li>`;
+                }
+            },
+            postal: {
+                getValue: function(data) {
+                    return data.postal || 'Unknown';
+                },
+                display: function(data) {
+                    return `<li>邮政编码: ${this.getValue(data)}</li>`;
+                }
+            },
+            anycast: {
+                getValue: function(data) {
+                    return data.anycast ? '是' : '否';
+                },
+                display: function(data) {
+                    return `<li>是否为Anycast: ${this.getValue(data)}</li>`;
+                }
+            },
+            displayAll: function(data) {
+                let html = '';
+                const modulesOrder = ['ip', 'hostname', 'city', 'MountainView', 'California', 'country', 'loc', 'org', 'timezone', 'postal', 'anycast'];
+                for (let moduleName of modulesOrder) {
+                    if (this[moduleName] && typeof this[moduleName] === 'object' && this[moduleName].display) {
+                        html += this[moduleName].display(data);
+                    }
+                }
+                return html;
+            }
+        };
+
+        function getUrlParam(paramName) {
+            return new URLSearchParams(window.location.search).get(paramName);
+        }
+
+        async function fetchAndDisplayIPInfo(ip) {
+            try {
+                const response = await fetch(`IPK/${ip}.json`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                const infoList = document.getElementById('infoList');
+                if (!infoList) throw new Error('无法找到 infoList 元素');
+                infoList.innerHTML = IPInfoModule.displayAll(data);
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                document.getElementById('infoList').innerHTML = '<li>无法获取IP信息</li>';
+            }
+        }
+
+        window.onload = () => {
+            const ip = getUrlParam('ip');
+            if (ip) {
+                fetchAndDisplayIPInfo(ip);
+            } else {
+                document.getElementById('infoList').innerHTML = '<li>未找到IP信息</li>';
+            }
+        };
+    </script>
+</body>
+</html>
