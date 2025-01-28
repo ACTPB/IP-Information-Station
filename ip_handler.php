@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 
-$apiKey = getenv('eacbd8d3be6308');
+$apiKey = getenv('you_key');
 
 function get_ip_info($ip) {
     global $apiKey;
